@@ -1,51 +1,47 @@
-### Project Description: Building a FastAPI Application with Stable Diffusion Image Generation
+# FastAPI Image Generation Service with Stable Diffusion
 
-**Objective**: Develop a FastAPI application from scratch that integrates the Stable Diffusion model, provided by Stability AI for custom image generation. You will create an asynchronous API that accepts unique prompts, processes them using Stable Diffusion, and generates corresponding images.
+A FastAPI application that integrates Stable Diffusion via Stability AI to generate images from text prompts asynchronously.
 
-#### Background:
-- Stable Diffusion is a powerful AI model capable of creating detailed images from textual descriptions.
-- For now we'll simply integrate their sdk and access the model using their SaaS offering.
-- Your task is to understand how to effectively utilize a ml model in a FastAPI context.
+## Setup & Installation
 
-#### Resources Provided:
-- Access to the `ImageGenerator` API that uses Stable Diffusion.
-- A GPT-Service Implementation + API for optional profanity checking.
-- An API key for the `ImageGenerator` service.
-- Documentation on Stable Diffusion and its prompt-handling capabilities.
+1. Install dependencies:
+```bash
+cd assignment
+uv sync
+```
 
-#### Key Tasks and Requirements:
-1. **Set Up a FastAPI Project**:
-   - Initialize a new FastAPI application.
-   - Install necessary dependencies, including libraries for interacting with the `ImageGenerator` service.
+2. Configure API key in `.env`:
+```
+STABILITY_API_KEY=your-api-key-here
+```
 
-2. **Custom Prompt Development**:
-   - Design a unique prompt structure that users can utilize your own image requirements.
+3. Run the server:
+```bash
+uv run uvicorn app:app --reload
+```
 
-3. **Asynchronous Image Generation Endpoint (`/images`)**:
-   - Create an endpoint to accept image generation requests.
-   - Implement asynchronous processing using FastAPI's `BackgroundTasks`.
-   - Optional: use redis queue
+API documentation: `http://127.0.0.1:8000/docs`
 
-4. **Background Task for Image Generation (`gen_image_task`)**:
-   - Code a function that uses the `ImageGenerator` with custom prompts to generate images.
-   - Handle image saving and retrieval.
+## API Usage
 
-5. **Image Retrieval Endpoint (`/image/{image_id}`)**:
-   - Develop an endpoint for users to retrieve their generated images using an image ID.
-   - Implement appropriate responses for different image statuses (e.g., processing, ready, not found).
+### POST `/images` - Request Image Generation
+```json
+{
+  "prompt": "A crocodile and a bear fighting"
+}
+```
+Returns: `image_id` for later retrieval
 
+### GET `/image/{image_id}` - Retrieve Image
+Returns the generated PNG image if ready, status message if processing, or error if failed.
 
-#### Deliverables:
-- Complete source code of the FastAPI application.
-- A README or documentation detailing the API usage, setup instructions, and any important decisions made during development.
+## Implementation Notes
 
-#### Evaluation Criteria:
-- Functionality and correctness of the FastAPI application in an async way.
-- Effective integration of the Stable Diffusion model.
-- Creativity and utility of the custom prompt system.
+- **FastAPI Setup**: Basic FastAPI application with pydantic models (from FastAPI tutorial example 6)
+- **Asynchronous Processing**: Uses FastAPI's `BackgroundTasks` to queue image generation without blocking responses
+- **Background Task**: `gen_image_task()` calls `ImageGenerator.generate_image()`, saves image to disk, and tracks status
+- **Image Storage**: In-memory dictionary tracks image states (processing/ready/failed); images saved locally
+- **Prompt System**: Users provide simple text prompts; `ImageGenerator` enhances them with template details (comical sketch, high resolution, etc.) for better results
+- **Error Handling**: Catches exceptions during generation and reports failure status
 
-#### Tips:
-- Start with a basic FastAPI setup and gradually integrate the image generation features.
-
-
-This project is an excellent opportunity to demonstrate your skills in web API development, asynchronous programming, and AI model integration. Good luck!
+The core implementation closely follows the patterns from `1_fast_api_tutorial/examples/6_fast_main.py` using Pydantic models and BackgroundTasks.
